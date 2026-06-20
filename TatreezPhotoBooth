@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tatreez Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE7D9;
+    --paper-edge: #DCD4C0;
+    --thread: #A8222E;
+    --thread-dark: #7E1A23;
+    --charcoal: #2B2A28;
+    --gold: #9C7A3C;
+    --sepia-shadow: #C9BFA8;
+    --white: #FAF8F2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--charcoal);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.04), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(255,255,255,0.03), transparent 40%);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 64px;
+  }
+
+  h1, h2, .display {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  header {
+    text-align: center;
+    max-width: 480px;
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-size: 32px;
+    margin: 0 0 10px;
+    color: var(--white);
+  }
+
+  header p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #C7C3BA;
+    margin: 0;
+  }
+
+  /* ---- the postcard ---- */
+  .postcard-wrap {
+    position: relative;
+    width: min(380px, 90vw);
+  }
+
+  .postcard {
+    position: relative;
+    background: var(--paper);
+    padding: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.5) inset,
+      0 18px 40px rgba(0,0,0,0.45);
+    clip-path: polygon(
+      0% 2%, 1.5% 0%, 4% 1%, 7% 0%, 10% 1.2%, 13% 0%, 16% 1%, 19% 0%, 22% 1.2%, 25% 0%,
+      28% 1%, 31% 0%, 34% 1.2%, 37% 0%, 40% 1%, 43% 0%, 46% 1.2%, 49% 0%, 52% 1%, 55% 0%,
+      58% 1.2%, 61% 0%, 64% 1%, 67% 0%, 70% 1.2%, 73% 0%, 76% 1%, 79% 0%, 82% 1.2%, 85% 0%,
+      88% 1%, 91% 0%, 94% 1.2%, 97% 0%, 100% 2%,
+      99% 5%, 100% 8%, 99% 11%, 100% 14%, 99% 17%, 100% 20%, 99% 23%, 100% 26%, 99% 29%,
+      100% 32%, 99% 35%, 100% 38%, 99% 41%, 100% 44%, 99% 47%, 100% 50%, 99% 53%, 100% 56%,
+      99% 59%, 100% 62%, 99% 65%, 100% 68%, 99% 71%, 100% 74%, 99% 77%, 100% 80%, 99% 83%,
+      100% 86%, 99% 89%, 100% 92%, 99% 95%, 100% 98%,
+      97% 100%, 94% 99%, 91% 100%, 88% 99%, 85% 100%, 82% 99%, 79% 100%, 76% 99%, 73% 100%,
+      70% 99%, 67% 100%, 64% 99%, 61% 100%, 58% 99%, 55% 100%, 52% 99%, 49% 100%, 46% 99%,
+      43% 100%, 40% 99%, 37% 100%, 34% 99%, 31% 100%, 28% 99%, 25% 100%, 22% 99%, 19% 100%,
+      16% 99%, 13% 100%, 10% 99%, 7% 100%, 4% 99%, 1.5% 100%, 0% 98%,
+      1% 95%, 0% 92%, 1% 89%, 0% 86%, 1% 83%, 0% 80%, 1% 77%, 0% 74%, 1% 71%, 0% 68%,
+      1% 65%, 0% 62%, 1% 59%, 0% 56%, 1% 53%, 0% 50%, 1% 47%, 0% 44%, 1% 41%, 0% 38%,
+      1% 35%, 0% 32%, 1% 29%, 0% 26%, 1% 23%, 0% 20%, 1% 17%, 0% 14%, 1% 11%, 0% 8%, 1% 5%
+    );
+  }
+
+  .photo-area {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 5;
+    background: #1a1a1a;
+    overflow: hidden;
+  }
+
+  .photo-area video,
+  .photo-area canvas#captureCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-area canvas#captureCanvas { display: none; }
+
+  #stitchCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* desaturate the captured photo toward the vintage look once final */
+  .photo-area.developed video,
+  .photo-area.developed canvas#captureCanvas {
+    filter: grayscale(0.55) sepia(0.12) contrast(1.05) brightness(0.97);
+  }
+
+  .shutter-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .caption {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  /* ---- buttons ---- */
+  button {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-primary {
+    background: var(--thread);
+    color: var(--white);
+    padding: 13px 26px;
+    border-radius: 2px;
+    box-shadow: 0 3px 0 var(--thread-dark);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--thread-dark); }
+  .btn-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--thread-dark); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 12px 24px;
+    border-radius: 2px;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  .shutter-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 4px solid var(--thread);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .shutter-btn:hover { transform: scale(1.05); }
+  .shutter-btn:active { transform: scale(0.95); }
+
+  /* ---- quiz panel ---- */
+  .quiz-panel {
+    width: min(380px, 90vw);
+    margin-top: 28px;
+  }
+
+  .quiz-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .quiz-progress span {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .quiz-progress span.done { background: var(--thread); }
+
+  .quiz-question {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 18px;
+    color: var(--white);
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quiz-option {
+    text-align: left;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--white);
+    padding: 14px 16px;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .quiz-option:hover {
+    border-color: var(--thread);
+    background: rgba(168,34,46,0.12);
+  }
+
+  /* ---- placement chooser ---- */
+  .placement-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .placement-choice {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white);
+    padding: 10px 16px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .placement-choice.active {
+    border-color: var(--thread);
+    background: rgba(168,34,46,0.18);
+    color: var(--gold);
+  }
+
+  .screen { display: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .motif-name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 18px 0 4px;
+    text-align: center;
+  }
+  .motif-desc {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #C7C3BA;
+    text-align: center;
+    max-width: 320px;
+    margin: 0 0 6px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: #8a867d;
+    text-align: center;
+    margin-top: 14px;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+
+  .stitching-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  ::selection { background: var(--thread); color: white; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">A small embroidery ritual</div>
+  <h1>Tatreez Portrait</h1>
+  <p>Take a photo, answer a few questions, and receive a hand-charted Palestinian cross-stitch motif — stitched, not generated, the way it's always been done.</p>
+</header>
+
+<!-- SCREEN 1: CAMERA -->
+<div class="screen active" id="screen-camera">
+  <div class="postcard-wrap">
+    <div class="postcard">
+      <div class="photo-area" id="photoArea">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="captureCanvas"></canvas>
+        <canvas id="stitchCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="caption" id="cameraCaption">Center your face in frame</div>
+  <div class="shutter-row">
+    <button class="shutter-btn" id="shutterBtn" aria-label="Take photo"></button>
+  </div>
+  <p class="hint" id="cameraHint">Your photo stays on this device — nothing is uploaded.</p>
+</div>
+
+<!-- SCREEN 2: QUIZ -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-panel">
+    <div class="quiz-progress" id="quizProgress"></div>
+    <p class="quiz-question" id="quizQuestion"></p>
+    <div class="quiz-options" id="quizOptions"></div>
+  </div>
+</div>
+
+<!-- SCREEN 3: RESULT -->
+<div class="screen" id="screen-result">
+  <div class="postcard-wrap">
+    <div class="postcard">
+      <div class="photo-area developed" id="resultPhotoArea">
+        <canvas id="resultBaseCanvas"></canvas>
+        <canvas id="resultStitchCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+  <p class="stitching-label" id="stitchingLabel"></p>
+  <p class="motif-name" id="motifName"></p>
+  <p class="motif-desc" id="motifDesc"></p>
+
+  <div class="placement-row" id="placementRow">
+    <button class="placement-choice" data-placement="overlay">On the photo</button>
+    <button class="placement-choice" data-placement="frame">As a border</button>
+    <button class="placement-choice" data-placement="both">Both</button>
+  </div>
+
+  <div class="result-actions">
+    <button class="btn-ghost" id="retakeBtn">Start over</button>
+    <button class="btn-primary" id="downloadBtn">Save postcard</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   MOTIF LIBRARY
+   Each motif is a literal grid (0/1). This is the fix for
+   "random squares and arrows" — the shapes are never invented
+   by a model at render time. They come from real charted
+   tatreez composition logic: small repeating units (diamonds,
+   hooks, stepped chevrons, eight-point stars) combined with
+   mirror symmetry, the same way physical cross-stitch charts
+   are built.
+   ============================================================ */
+
+function mirrorH(g){ return g.map(r => [...r].reverse()); }
+function mirrorV(g){ return [...g].reverse(); }
+function hconcat(a,b){ return a.map((r,i)=>[...r, ...b[i]]); }
+function vconcat(a,b){ return [...a, ...b]; }
+function padRow(row, l, r){ return [...Array(l).fill(0), ...row, ...Array(r).fill(0)]; }
+function padRows(g,l,r){ return g.map(row => padRow(row,l,r)); }
+
+const DIAMOND_SMALL = [
+  [0,0,0,1,0,0,0],
+  [0,0,1,1,1,0,0],
+  [0,1,1,1,1,1,0],
+  [1,1,1,1,1,1,1],
+  [0,1,1,1,1,1,0],
+  [0,0,1,1,1,0,0],
+  [0,0,0,1,0,0,0],
+];
+
+const HOOK = [
+  [0,0,0,0,1,1,1],
+  [0,0,0,1,1,0,0],
+  [0,0,1,1,0,0,0],
+  [0,1,1,0,0,0,0],
+  [1,1,0,0,0,0,1],
+  [1,1,0,0,0,1,1],
+  [1,1,0,0,1,1,0],
+  [0,1,1,1,1,0,0],
+  [0,0,1,1,0,0,0],
+];
+
+const BODY_QUAD = [
+  [1,0,0,0,0,0],
+  [0,0,1,0,0,0],
+  [0,1,1,1,0,0],
+  [0,0,1,1,1,0],
+  [0,0,0,1,1,1],
+  [0,0,1,1,1,0],
+];
+
+function buildColumnMotif() {
+  const hookL = HOOK, hookR = mirrorH(HOOK);
+  const topRow = hconcat(hookL, hookR);
+  const width = topRow[0].length;
+  const dpad = Math.floor((width - DIAMOND_SMALL[0].length)/2);
+  const diamondPadded = padRows(DIAMOND_SMALL, dpad, width - DIAMOND_SMALL[0].length - dpad);
+  const top = vconcat(diamondPadded, topRow);
+
+  const bodyTop = hconcat(BODY_QUAD, mirrorH(BODY_QUAD));
+  const bodyBottom = hconcat(mirrorV(BODY_QUAD), mirrorV(mirrorH(BODY_QUAD)));
+  const body = vconcat(bodyTop, bodyBottom);
+  const wd = top[0].length - body[0].length;
+  const lpad = Math.floor(wd/2), rpad = wd - lpad;
+  const bodyPadded = padRows(body, lpad, rpad);
+
+  const bottom = mirrorV(top);
+  return vconcat(vconcat(top, bodyPadded), bottom);
+}
+
+const CYPRESS = [
+  [0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,1,1,1,0,0,0,0,0],
+  [0,0,0,0,1,1,1,1,1,0,0,0,0],
+  [0,0,0,1,1,0,1,0,1,1,0,0,0],
+  [0,0,1,1,0,0,1,0,0,1,1,0,0],
+  [0,1,1,0,0,0,1,0,0,0,1,1,0],
+  [1,1,0,0,0,0,1,0,0,0,0,1,1],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,1,1,1,0,0,0,0,0],
+  [0,0,0,0,1,1,1,1,1,0,0,0,0],
+  [0,0,0,1,1,0,1,0,1,1,0,0,0],
+  [0,0,1,1,0,0,1,0,0,1,1,0,0],
+  [0,1,1,0,0,0,1,0,0,0,1,1,0],
+  [1,1,0,0,0,0,1,0,0,0,0,1,1],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,1,1,1,1,1,1,1,1,1,0,0],
+];
+
+const STAR = [
+  [0,0,0,0,1,0,0,0,0],
+  [0,1,0,0,1,0,0,1,0],
+  [0,0,1,0,1,0,1,0,0],
+  [0,0,0,1,1,1,0,0,0],
+  [1,1,1,1,1,1,1,1,1],
+  [0,0,0,1,1,1,0,0,0],
+  [0,0,1,0,1,0,1,0,0],
+  [0,1,0,0,1,0,0,1,0],
+  [0,0,0,0,1,0,0,0,0],
+];
+
+// border strip: small repeating zigzag/diamond chain, tiled across full width
+const BORDER_UNIT = [
+  [0,1,0],
+  [1,1,1],
+  [0,1,0],
+];
+
+function buildBorderStrip(targetCols) {
+  let row = BORDER_UNIT;
+  while (row[0].length < targetCols) row = hconcat(row, BORDER_UNIT);
+  // trim to exact width so it never overflows the canvas
+  row = row.map(r => r.slice(0, targetCols));
+  return row;
+}
+
+const MOTIFS = {
+  column: {
+    name: "The Watchful Column",
+    desc: "A vertical amulet motif built from mirrored hooks and a stepped diamond chain — traditionally worn over the chest as protection.",
+    grid: buildColumnMotif(),
+  },
+  cypress: {
+    name: "The Cypress",
+    desc: "Sarw, the cypress tree — a motif of steadfastness and rootedness, often stitched in tiers climbing upward.",
+    grid: CYPRESS,
+  },
+  star: {
+    name: "The Eight-Point Star",
+    desc: "A celestial medallion motif, often used as a centerpiece on the chest panel of a thobe.",
+    grid: STAR,
+  },
+};
+
+/* ============================================================
+   PERSONALITY QUIZ — maps answers to a motif + thread tone
+   ============================================================ */
+
+const QUIZ = [
+  {
+    q: "When you enter a room, you tend to:",
+    options: [
+      { label: "Find the quietest corner and observe", motif: "column", weight: 2 },
+      { label: "Look for someone to talk to first", motif: "star", weight: 2 },
+      { label: "Notice what needs fixing or rearranging", motif: "cypress", weight: 2 },
+    ],
+  },
+  {
+    q: "A trait people consistently mention about you:",
+    options: [
+      { label: "Steady — I don't rattle easily", motif: "cypress", weight: 2 },
+      { label: "Protective of the people I love", motif: "column", weight: 2 },
+      { label: "Curious about almost everything", motif: "star", weight: 2 },
+    ],
+  },
+  {
+    q: "Pick the closing line of a story about you:",
+    options: [
+      { label: "...and she was still standing, long after the storm.", motif: "cypress", weight: 1 },
+      { label: "...and everyone who knew her felt a little safer.", motif: "column", weight: 1 },
+      { label: "...and she was already looking up at the next thing.", motif: "star", weight: 1 },
+    ],
+  },
+];
+
+let quizState = { step: 0, scores: { column: 0, cypress: 0, star: 0 } };
+
+/* ============================================================
+   STITCH RENDERER
+   ============================================================ */
+
+function drawStitch(ctx, x, y, size, color) {
+  const pad = size * 0.12;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = size * 0.34;
+  ctx.beginPath();
+  ctx.moveTo(x+pad, y+pad);
+  ctx.lineTo(x+size-pad, y+size-pad);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x+size-pad, y+pad);
+  ctx.lineTo(x+pad, y+size-pad);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+  ctx.lineWidth = size * 0.08;
+  ctx.beginPath();
+  ctx.moveTo(x+pad+1, y+pad);
+  ctx.lineTo(x+size-pad+1, y+size-pad);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Returns flat list of {x,y,size} cell positions for a grid placed at (originX, originY) with given cell size
+function gridToStitchList(grid, cell, originX, originY) {
+  const list = [];
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c]) {
+        list.push({ x: originX + c*cell, y: originY + r*cell, size: cell });
+      }
+    }
+  }
+  return list;
+}
+
+function animateStitches(ctx, stitches, color, durationMs, onDone) {
+  const total = stitches.length;
+  if (total === 0) { if (onDone) onDone(); return; }
+  const perStitch = Math.max(2, durationMs / total);
+  let i = 0;
+  function step() {
+    const batch = Math.max(1, Math.floor(total / (durationMs / 16)));
+    for (let k = 0; k < batch && i < total; k++, i++) {
+      const s = stitches[i];
+      drawStitch(ctx, s.x, s.y, s.size, color);
+    }
+    if (i < total) {
+      requestAnimationFrame(step);
+    } else if (onDone) {
+      onDone();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   APP STATE / FLOW
+   ============================================================ */
+
+const screens = {
+  camera: document.getElementById('screen-camera'),
+  quiz: document.getElementById('screen-quiz'),
+  result: document.getElementById('screen-result'),
+};
+
+function showScreen(name) {
+  Object.values(screens).forEach(s => s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+
+let stream = null;
+const video = document.getElementById('video');
+const captureCanvas = document.getElementById('captureCanvas');
+const cameraCaption = document.getElementById('cameraCaption');
+const cameraHint = document.getElementById('cameraHint');
+
+async function initCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    video.srcObject = stream;
+  } catch (err) {
+    cameraCaption.textContent = "Camera unavailable";
+    cameraHint.textContent = "Allow camera access in your browser settings, then reload. " + (err.message || "");
+  }
+}
+
+let capturedDataUrl = null;
+
+document.getElementById('shutterBtn').addEventListener('click', () => {
+  const w = video.videoWidth, h = video.videoHeight;
+  if (!w || !h) return;
+  captureCanvas.width = w;
+  captureCanvas.height = h;
+  const ctx = captureCanvas.getContext('2d');
+  // mirror to match the preview (front camera is mirrored in the video element via no transform here,
+  // so draw as-is to keep what the user saw)
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, w, h);
+  capturedDataUrl = captureCanvas.toDataURL('image/png');
+
+  if (stream) stream.getTracks().forEach(t => t.stop());
+
+  quizState = { step: 0, scores: { column: 0, cypress: 0, star: 0 } };
+  renderQuizStep();
+  showScreen('quiz');
+});
+
+initCamera();
+
+/* ---- Quiz rendering ---- */
+
+const quizProgress = document.getElementById('quizProgress');
+const quizQuestion = document.getElementById('quizQuestion');
+const quizOptions = document.getElementById('quizOptions');
+
+function renderQuizStep() {
+  quizProgress.innerHTML = '';
+  QUIZ.forEach((_, i) => {
+    const span = document.createElement('span');
+    if (i < quizState.step) span.classList.add('done');
+    quizProgress.appendChild(span);
+  });
+
+  const q = QUIZ[quizState.step];
+  quizQuestion.textContent = q.q;
+  quizOptions.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.label;
+    btn.addEventListener('click', () => {
+      quizState.scores[opt.motif] += opt.weight;
+      quizState.step++;
+      if (quizState.step < QUIZ.length) {
+        renderQuizStep();
+      } else {
+        finishQuiz();
+      }
+    });
+    quizOptions.appendChild(btn);
+  });
+}
+
+let selectedMotifKey = 'column';
+let currentPlacement = 'overlay';
+
+function finishQuiz() {
+  let best = null, bestScore = -1;
+  for (const key in quizState.scores) {
+    if (quizState.scores[key] > bestScore) {
+      bestScore = quizState.scores[key];
+      best = key;
+    }
+  }
+  selectedMotifKey = best;
+  showScreen('result');
+  setupResultScreen();
+}
+
+/* ---- Result screen: draw photo + stitched motif ---- */
+
+const resultBaseCanvas = document.getElementById('resultBaseCanvas');
+const resultStitchCanvas = document.getElementById('resultStitchCanvas');
+const motifNameEl = document.getElementById('motifName');
+const motifDescEl = document.getElementById('motifDesc');
+const stitchingLabel = document.getElementById('stitchingLabel');
+const placementRow = document.getElementById('placementRow');
+
+function setupResultScreen() {
+  const motif = MOTIFS[selectedMotifKey];
+  motifNameEl.textContent = motif.name;
+  motifDescEl.textContent = motif.desc;
+
+  Array.from(placementRow.children).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.placement === currentPlacement);
+    btn.onclick = () => {
+      currentPlacement = btn.dataset.placement;
+      Array.from(placementRow.children).forEach(b => b.classList.toggle('active', b === btn));
+      drawResult();
+    };
+  });
+
+  drawResult();
+}
+
+function drawResult() {
+  const img = new Image();
+  img.onload = () => {
+    const area = document.getElementById('resultPhotoArea');
+    const w = area.clientWidth, h = area.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    [resultBaseCanvas, resultStitchCanvas].forEach(c => {
+      c.width = w * dpr;
+      c.height = h * dpr;
+      c.style.width = w + 'px';
+      c.style.height = h + 'px';
+    });
+
+    const baseCtx = resultBaseCanvas.getContext('2d');
+    baseCtx.scale(dpr, dpr);
+    // cover-fit the captured image into the postcard area
+    const ir = img.width / img.height, ar = w / h;
+    let dw, dh, dx, dy;
+    if (ir > ar) { dh = h; dw = h * ir; dx = (w-dw)/2; dy = 0; }
+    else { dw = w; dh = w / ir; dx = 0; dy = (h-dh)/2; }
+    baseCtx.drawImage(img, dx, dy, dw, dh);
+
+    const stitchCtx = resultStitchCanvas.getContext('2d');
+    stitchCtx.scale(dpr, dpr);
+    stitchCtx.clearRect(0,0,w,h);
+
+    const motif = MOTIFS[selectedMotifKey];
+    let stitches = [];
+
+    if (currentPlacement === 'overlay' || currentPlacement === 'both') {
+      const grid = motif.grid;
+      const cell = Math.min((w * 0.62) / grid[0].length, (h * 0.4) / grid.length);
+      const originX = (w - grid[0].length * cell) / 2;
+      const originY = h * 0.10;
+      stitches = stitches.concat(gridToStitchList(grid, cell, originX, originY));
+    }
+
+    if (currentPlacement === 'frame' || currentPlacement === 'both') {
+      const cols = 22;
+      const cell = w / cols;
+      const strip = buildBorderStrip(cols);
+      // top and bottom border strips
+      stitches = stitches.concat(gridToStitchList(strip, cell, 0, cell*0.5));
+      stitches = stitches.concat(gridToStitchList(strip, cell, 0, h - cell*3.5));
+    }
+
+    stitchingLabel.textContent = 'Stitching…';
+    animateStitches(stitchCtx, stitches, '#A8222E', 1100, () => {
+      stitchingLabel.textContent = `${stitches.length} stitches placed`;
+    });
+  };
+  img.src = capturedDataUrl;
+}
+
+document.getElementById('retakeBtn').addEventListener('click', () => {
+  capturedDataUrl = null;
+  showScreen('camera');
+  initCamera();
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  // composite base + stitch canvases into one PNG for download
+  const w = resultBaseCanvas.width, h = resultBaseCanvas.height;
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(resultBaseCanvas, 0, 0);
+  ctx.drawImage(resultStitchCanvas, 0, 0);
+  const link = document.createElement('a');
+  link.download = 'tatreez-portrait.png';
+  link.href = out.toDataURL('image/png');
+  link.click();
+});
+
+window.addEventListener('resize', () => {
+  if (screens.result.classList.contains('active')) drawResult();
+});
+</script>
+</body>
+</html>
